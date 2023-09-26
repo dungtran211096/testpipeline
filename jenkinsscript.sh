@@ -26,3 +26,4 @@ echo '### deactivate virtual environment ###'
 deactivate
 echo '### change pyenv to system ###'
 pyenv global system
+allure serve ./target/allure_results
