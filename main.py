@@ -1,16 +1,74 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import pytest
+import allure
+import os
+from selenium import webdriver
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def pytest_addoption(parser):
+    parser.addoption("--browser", action="store", default="firefox", help="Type in browser type")
+    parser.addoption("--executor", action="store", default="standalone", help="For selenium grid.")
+    parser.addoption("--url", action="store", default="http://the-internet.herokuapp.com", help="url")
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, "rep_" + rep.when, rep)
+    return rep
+
+
+@allure.step("Open Browser")
+@pytest.fixture(scope="function")
+def open_browser(request):
+    browser = request.config.getoption("--browser")
+    executor = request.config.getoption("--executor")
+
+    if executor == "local" or executor == "" or executor == "standalone":
+        if browser == 'chrome':
+            driver = webdriver.Chrome()
+        else:
+            driver = webdriver.Firefox()
+    else:
+        if executor == "remote":
+            command_executor = 'http://localhost:4444/wd/hub'
+        else:
+            command_executor = 'http://' + executor + '/wd/hub'  ## Expecting IP and Port. Eg. 1.1.1.1:4444
+
+        caps = {'browserName': os.getenv('BROWSER', browser)}
+        driver = webdriver.Remote(
+            command_executor=command_executor,
+            desired_capabilities=caps)
+
+    # if browser == 'chrome':
+    #     if executor == "remote":
+    #         caps = {'browserName': os.getenv('BROWSER', 'chrome')}
+    #         driver = webdriver.Remote(
+    #             command_executor='http://localhost:4444/wd/hub',
+    #             desired_capabilities=caps)
+    #     else:
+    #         driver = webdriver.Chrome()
+    # else:
+    #     driver = webdriver.Firefox()
+
+    driver.implicitly_wait(10)
+    driver.maximize_window()
+
+    yield driver # Teardown
+    driver.close()
+    driver.quit()
+
+
+@pytest.fixture(autouse=True)
+def allure_logs(request, open_browser):
+    driver = open_browser
+    yield driver
+    if request.node.rep_call.failed:
+        # Make the screen-shot if test failed:
+        try:
+            driver.execute_script("document.body.bgColor = 'white';")
+            allure.attach(driver.get_screenshot_as_png(),
+                          name=request.function.__name__,
+                          attachment_type=allure.attachment_type.PNG)
+        except:
+            pass # just ignore
