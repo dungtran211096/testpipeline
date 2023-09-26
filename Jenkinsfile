@@ -20,13 +20,13 @@ pipeline {
     //             junit skipMarkingBuildUnstable: true, testResults: 'xmlReport/output.xml'
     //         }
     //     }
-	stage("Publish Allure Report")	{
-		steps{
-			echo "Publish Allure"
-            sh "pwd"
-			allure includeProperties: false, jdk: '', results: [[path: 'testline/target/allure-results']]
-		}
-	}
+        stage("Publish Allure Report")	{
+            steps{
+                echo "Publish Allure"
+                sh "pwd"
+                allure includeProperties: false, jdk: '', results: [[path: 'testline/target/allure-results']]
+            }
+        }
 
     }
 }
