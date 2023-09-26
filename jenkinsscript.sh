@@ -18,9 +18,8 @@ echo '#### Installing requirements ####'
 pip install -r ./requirements.txt
 
 echo '#### Run tests ####'
-mkdir ./allure_results
-chmod -R 777 ./allure_results
-pytest APITests --alluredir=./allure_results  
+
+pytest APITests -m "not short" --alluredir "target/allure_results"
 
 echo '### deactivate virtual environment ###'
 deactivate
