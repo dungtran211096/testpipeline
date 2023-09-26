@@ -24,6 +24,7 @@ pipeline {
             steps{
                 echo "Publish Allure"
                 allure includeProperties: false, jdk: '', results: [[path: 'testline/target/allure-results']]
+                sh "allure serve ./target/allure_results"
             }
         }
 
