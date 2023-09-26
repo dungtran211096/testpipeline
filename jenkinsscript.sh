@@ -18,7 +18,7 @@ echo '#### Installing requirements ####'
 pip install -r ./requirements.txt
 
 echo '#### Run tests ####'
-echo $(pwd)
+
 pytest APITests -m "not short" --alluredir "target/allure_results"
 
 echo '### deactivate virtual environment ###'

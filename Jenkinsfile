@@ -23,6 +23,7 @@ pipeline {
 	stage("Publish Allure Report")	{
 		steps{
 			echo "Publish Allure"
+            echo $(pwd)
 			allure includeProperties: false, jdk: '', results: [[path: 'testline/target/allure-results']]
 		}
 	}
